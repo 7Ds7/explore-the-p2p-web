@@ -4,7 +4,8 @@ import {$} from '/js/utils.js'
   const DOM = {
     entriesList: $('.entries-list'),
     categories: $('.categories'),
-    showAllButton: $('.categories-show-all')
+    showAllButton: $('.categories-show-all'),
+    searchInput: $('.search-input')
   }
 
   const COLORS = [
@@ -52,6 +53,7 @@ import {$} from '/js/utils.js'
     // event listeners
     $('button.category').forEach(c => c.addEventListener('click', onToggleFilter))
     DOM.showAllButton.addEventListener('click', onClearFilters)
+    DOM.searchInput.addEventListener('keyup', onSearchChange)
   }
 
   // filesystem
@@ -139,6 +141,45 @@ import {$} from '/js/utils.js'
     DOM.showAllButton.classList.add('hidden')
 
     renderEntries(filteredEntries)
+  }
+
+  function onSearchChange(e) {
+    onClearFilters()
+    let searchEntries = searchFilter(entries, e.target.value)
+    renderEntries(searchEntries)
+  }
+  
+  function searchFilter(arr, str) {
+    let res = []
+    for (var i = 0; i < arr.length; i++) {
+      for (var key in arr[i]) {
+        if ( typeof(arr[i][key]) !== 'string') {
+          for (var ai = 0; ai < arr[i][key].length; ai++) {
+            if (stringExist(arr[i][key][ai], str)) {
+              res.push(arr[i])
+              break
+            }
+          }
+        } else if ( stringExist(arr[i][key], str) ) {
+          res.push(arr[i])
+          break
+        }
+      }
+    }
+    if ( res.length === 0 ) {
+      res.push({
+        title: `No results for "${str}"`,
+        description: 'Please try another search term',
+        classes: ["grid-column--4"]
+      })
+    }
+    return res;
+  }
+  
+  function stringExist(haystack, needle) {
+   if (haystack.toLowerCase().indexOf(needle.toLowerCase()) !== -1) {
+     return true;
+   }
   }
 
   function filterEntries () {
